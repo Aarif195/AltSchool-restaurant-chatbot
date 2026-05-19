@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessage } from './api/chatApi';
+import PaymentSuccess from './api/components/PaymentSuccess';
 
 interface Message {
   sender: 'bot' | 'user';
@@ -61,6 +62,10 @@ export default function App() {
       setLoading(false);
     }
   };
+
+  if (window.location.pathname === '/payment/success') {
+  return <PaymentSuccess />;
+}
 
   return (
     <div className="flex h-screen w-screen bg-brand-dark justify-center items-center p-0 sm:p-4">

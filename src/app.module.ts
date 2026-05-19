@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import envConfig from './config/env.config';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import envConfig from './config/env.config';
       }),
       inject: [ConfigService],
     }),
+    ChatModule,
   ],
 })
 export class AppModule {}

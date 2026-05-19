@@ -27,7 +27,7 @@ Select 0 to cancel order`;
   async processMessage(deviceId: string, message: string): Promise<{ response: string }> {
     const cleanMessage = message?.trim();
 
-    // 1. Fetch or create session for the device
+    //  Fetch or create session for the device
     let session = await this.sessionModel.findOne({ deviceId });
     if (!session) {
       session = await this.sessionModel.create({
@@ -39,7 +39,7 @@ Select 0 to cancel order`;
       return { response: `Welcome to our Restaurant! Please select an option:${this.initialOptions}` };
     }
 
-    // 2. Handle state or input logic
+    //  Handle state or input logic
     switch (cleanMessage) {
       case '1':
         session.currentState = 'VIEWING_MENU';

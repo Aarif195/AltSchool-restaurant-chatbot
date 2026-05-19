@@ -28,89 +28,89 @@ Select 0 to cancel order`;
 
 
     async processMessage(deviceId: string, message: string): Promise<{ response: string }> {
-    const cleanMessage = message?.trim();
+        const cleanMessage = message?.trim();
 
-    //  Fetch or create session for the device
-    let session = await this.sessionModel.findOne({ deviceId });
-    if (!session) {
-      session = await this.sessionModel.create({
-        deviceId,
-        currentState: 'MAIN_MENU',
-        currentOrder: [],
-        orderHistory: [],
-      });
-      return { response: `Welcome to our Restaurant! Please select an option:${this.initialOptions}` };
+        //  Fetch or create session for the device
+        let session = await this.sessionModel.findOne({ deviceId });
+        if (!session) {
+            session = await this.sessionModel.create({
+                deviceId,
+                currentState: 'MAIN_MENU',
+                currentOrder: [],
+                orderHistory: [],
+            });
+            return { response: `Welcome to our Restaurant! Please select an option:${this.initialOptions}` };
+        }
+
+        //  Handle state or input logic
+        switch (cleanMessage) {
+            case '1':
+                session.currentState = 'VIEWING_MENU';
+                await session.save(); // Explicitly save state change
+                return { response: this.getMenuText() };
+
+            case '97':
+                return { response: this.getCurrentOrderText(session.currentOrder) };
+
+            case '0':
+                if (session.currentOrder.length === 0) {
+                    return { response: `No active order to cancel.\n${this.initialOptions}` };
+                }
+                session.currentOrder = [];
+                session.currentState = 'MAIN_MENU';
+                await session.save();
+                return { response: `Your current order has been cancelled.\n${this.initialOptions}` };
+
+            case '98':
+                return { response: this.getOrderHistoryText(session.orderHistory) };
+
+            case '99':
+                if (!session.currentOrder || session.currentOrder.length === 0) {
+                    return { response: `No order to place. Please select an option to start:${this.initialOptions}\nSelect 1 to place a new order.` };
+                }
+
+                try {
+                    const totalAmount = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
+                    const guestEmail = `guest-${deviceId}@gmail.com`;
+
+                    const paymentData = await this.paymentService.initializeTransaction(
+                        totalAmount,
+                        guestEmail,
+                        { deviceId },
+                    );
+
+                    session.currentState = 'AWAITING_PAYMENT';
+                    await session.save();
+
+                    return {
+                        response: `Your total is ₦${totalAmount}. Please complete your payment using this secure link:\n\n${paymentData.authorization_url}\n\nOnce payment is complete, you will be automatically updated here. Select 0 to cancel.`
+                    };
+                } catch (error) {
+                    return { response: `Failed to initialize payment. Please try checkout again later.` };
+                }
+
+            default:
+                // Handle menu item selection if user is in VIEWING_MENU state
+                if (session.currentState === 'VIEWING_MENU') {
+                    const selectedItem = this.menu.find((item) => item.id === cleanMessage);
+                    if (selectedItem) {
+
+                        const updatedOrder = [...session.currentOrder, selectedItem];
+                        session.currentOrder = updatedOrder;
+
+                        await this.sessionModel.updateOne(
+                            { deviceId },
+                            { $set: { currentOrder: updatedOrder } }
+                        );
+
+                        return {
+                            response: `Added ${selectedItem.name} (₦${selectedItem.price}) to your cart.\n\nSelect another item code to add more, or choose from options:${this.initialOptions}`,
+                        };
+                    }
+                }
+                return { response: `Invalid option. Please choose correctly:${this.initialOptions}` };
+        }
     }
-
-    //  Handle state or input logic
-    switch (cleanMessage) {
-      case '1':
-        session.currentState = 'VIEWING_MENU';
-        await session.save(); // Explicitly save state change
-        return { response: this.getMenuText() };
-
-      case '97':
-        return { response: this.getCurrentOrderText(session.currentOrder) };
-
-      case '0':
-        if (session.currentOrder.length === 0) {
-          return { response: `No active order to cancel.\n${this.initialOptions}` };
-        }
-        session.currentOrder = [];
-        session.currentState = 'MAIN_MENU';
-        await session.save();
-        return { response: `Your current order has been cancelled.\n${this.initialOptions}` };
-
-      case '98':
-        return { response: this.getOrderHistoryText(session.orderHistory) };
-
-      case '99':
-        if (!session.currentOrder || session.currentOrder.length === 0) {
-          return { response: `No order to place. Please select an option to start:${this.initialOptions}\nSelect 1 to place a new order.` };
-        }
-
-        try {
-          const totalAmount = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
-          const guestEmail = `guest-${deviceId}@gmail.com`; 
-
-          const paymentData = await this.paymentService.initializeTransaction(
-            totalAmount,
-            guestEmail,
-            { deviceId },
-          );
-
-          session.currentState = 'AWAITING_PAYMENT';
-          await session.save();
-
-          return { 
-            response: `Your total is ₦${totalAmount}. Please complete your payment using this secure link:\n\n${paymentData.authorization_url}\n\nOnce payment is complete, you will be automatically updated here. Select 0 to cancel.` 
-          };
-        } catch (error) {
-          return { response: `Failed to initialize payment. Please try checkout again later.` };
-        }
-
-      default:
-        // Handle menu item selection if user is in VIEWING_MENU state
-        if (session.currentState === 'VIEWING_MENU') {
-          const selectedItem = this.menu.find((item) => item.id === cleanMessage);
-          if (selectedItem) {
-            
-            const updatedOrder = [...session.currentOrder, selectedItem];
-            session.currentOrder = updatedOrder;
-            
-            await this.sessionModel.updateOne(
-              { deviceId },
-              { $set: { currentOrder: updatedOrder } }
-            );
-
-            return {
-              response: `Added ${selectedItem.name} (₦${selectedItem.price}) to your cart.\n\nSelect another item code to add more, or choose from options:${this.initialOptions}`,
-            };
-          }
-        }
-        return { response: `Invalid option. Please choose correctly:${this.initialOptions}` };
-    }
-  }
 
     private getMenuText(): string {
         let menuText = 'Our Menu:\n';

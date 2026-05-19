@@ -65,22 +65,27 @@ export class PaymentService {
       if (deviceId) {
         const session = await this.sessionModel.findOne({ deviceId });
         if (session && session.currentOrder.length > 0) {
-          // Calculate total order cost
           const total = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
           
-          // Archive order items into history
-          session.orderHistory.push({
-            items: session.currentOrder,
-            total,
-            status: 'paid',
-            paidAt: new Date(),
-          });
-
-          // Empty current active cart/order state
-          session.currentOrder = [];
-          session.currentState = 'MAIN_MENU';
-          await session.save();
-          console.log(`Payment successful processed for Device: ${deviceId}`);
+          // Use an update operation to push to orderHistory and clean currentOrder at the same time
+          await this.sessionModel.updateOne(
+            { deviceId },
+            {
+              $push: {
+                orderHistory: {
+                  items: session.currentOrder,
+                  total,
+                  status: 'paid',
+                  paidAt: new Date(),
+                },
+              },
+              $set: {
+                currentOrder: [],
+                currentState: 'MAIN_MENU',
+              },
+            },
+          );
+          console.log(`Payment successfully archived for Device: ${deviceId}`);
         }
       }
     }

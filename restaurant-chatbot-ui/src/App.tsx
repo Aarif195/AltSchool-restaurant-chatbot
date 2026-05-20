@@ -35,8 +35,7 @@ useEffect(() => {
     const initChat = async () => {
       setLoading(true);
       try {
-        // If returning from a transaction, send a forced cancel action payload "0" to reset the state pipeline
-        // const initialPayload = '';
+        
         const initialPayload = isPaymentRedirect ? 'PAYMENT_REDIRECT_SUCCESS' : '';
         const data = await sendMessage(initialPayload);
         setMessages([{ sender: 'bot', text: data.response }]);
@@ -49,6 +48,7 @@ useEffect(() => {
     initChat();
   }, []);
 
+  // Handle messages
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanInput = input.trim();
@@ -68,6 +68,7 @@ useEffect(() => {
     }
   };
 
+  // renderMessageText
   const renderMessageText = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     return text.split(urlRegex).map((part, i) => {

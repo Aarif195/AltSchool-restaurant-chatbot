@@ -18,7 +18,7 @@ PORT=3000
 MONGODB_URI=your_mongodb_atlas_connection_string
 PAYSTACK_SECRET_KEY=your_paystack_secret_key
 PAYSTACK_PUBLIC_KEY=your_paystack_public_key
-FRONTEND_PAYMENT_CALLBACK_URL=http://localhost:5173/payment/success
+FRONTEND_PAYMENT_CALLBACK_URL=http://localhost:5173/
 
 
 ## Project setup

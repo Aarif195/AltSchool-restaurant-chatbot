@@ -160,6 +160,7 @@ export class ChatService {
         }
     }
 
+    // getMenuText
     private getMenuText(): string {
         let menuText = 'Our Menu:\n';
         this.menu.forEach((item) => {
@@ -169,6 +170,7 @@ export class ChatService {
         return menuText;
     }
 
+    // getCurrentOrderText
     private getCurrentOrderText(currentOrder: any[]): string {
         if (currentOrder.length === 0) {
             return `Your current order cart is empty.\n${this.initialOptions}`;
@@ -183,6 +185,7 @@ export class ChatService {
         return text;
     }
 
+// getOrderHistoryText
     private getOrderHistoryText(orderHistory: any[]): string {
         if (orderHistory.length === 0) {
             return `You have no past orders.\n${this.initialOptions}`;

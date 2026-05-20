@@ -1,4 +1,4 @@
-# Restaurant ChatBot API (Backend)
+# Restaurant ChatBot API
 
 A stateful, session-based chatbot REST API built with NestJS and MongoDB Atlas to manage customer restaurant orders with integrated Paystack payment processing.
 
@@ -21,7 +21,7 @@ PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 FRONTEND_PAYMENT_CALLBACK_URL=http://localhost:5173/
 
 
-## Project setup
+## Installation & Execution
 
 ```bash
 $ npm install
@@ -30,11 +30,11 @@ $ npm install
 ## Compile and run the project
 
 ```bash
+# Navigate to the backend directory (if nested)
+$ cd restaurant-chatbot
+
 # Install dependencies
 $ npm install
-
-# development
-$ npm run start
 
 # watch mode
 $ npm run start:dev
@@ -42,6 +42,18 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+```bash
+# Navigate to the frontend directory from project root
+$ cd restaurant-chatbot-ui
+
+# Install UI assets and packages
+$ npm install
+
+# Launch local Vite dev server
+$ npm run dev
+```
+
 ## API Testing Guide (Postman / cURL)
 
 ### 1. Process Chat Options
@@ -70,7 +82,7 @@ Example:
 
 ```json
 {
-  "message": "hello"
+  "message": ""
 }
 ```
 
@@ -78,7 +90,7 @@ Example:
 
 ### Step 2 — Fetch Menu Items
 
-Send:
+Send option 1 to fetch current dishes available in the database.
 
 ```json
 {
@@ -92,7 +104,7 @@ This should return the available menu items.
 
 ### Step 3 — Add Item to Cart
 
-Send:
+Send a specific food identifier menu code (e.g., 11 for Jollof Rice) to insert an item into your active cart record.
 
 ```json
 {
@@ -106,7 +118,7 @@ This adds **Jollof Rice** to the cart.
 
 ### Step 4 — View Cart
 
-Send:
+Send option 97 to compute the total price array and see what items are currently staged.
 
 ```json
 {
@@ -120,15 +132,24 @@ This should return the current cart items and total order amount.
 
 ### Step 5 — Checkout
 
-Send:
+Send option 99 to lock your items and transition your system state.
 
 ```json
 {
   "message": "99"
 }
 ```
+Note: The bot will reply requesting you to enter your email address to route the payload.
 
+Send the email address, e.g. 
 
+```json
+{
+  "message": "[EMAIL_ADDRESS]"
+}
+```
+
+The backend will return a live secure Paystack authorization_url. Open this URL inside your browser window to process the test payment loop.
 
 ---
 

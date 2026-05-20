@@ -63,7 +63,7 @@ export default function App() {
     }
   };
 
-  if (window.location.pathname === '/payment/success') {
+  if (window.location.pathname.startsWith('/payment/success')) {
     return <PaymentSuccess />;
   }
 
@@ -112,8 +112,8 @@ export default function App() {
             >
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed shadow-sm ${msg.sender === 'user'
-                    ? 'bg-brand-primary text-white rounded-br-none'
-                    : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
+                  ? 'bg-brand-primary text-white rounded-br-none'
+                  : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
                   }`}
               >
                 {msg.sender === 'user' ? msg.text : renderMessageText(msg.text)}

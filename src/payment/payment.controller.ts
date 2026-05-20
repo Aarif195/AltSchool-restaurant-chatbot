@@ -13,16 +13,6 @@ import type { Request, Response } from 'express';import { PaymentService } from 
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-//   @Post('webhook')
-//   async handleWebhook(
-//     @Req() req: any, 
-//     @Res() res: Response,
-//   ) {
-//     // We bypass signature checking for local postman simulation
-//     await this.paymentService.handleWebhookEvent(req.body);
-//     return res.status(HttpStatus.OK).send('Webhook Received Locally');
-//   }
-
   @Post('webhook')
   async handleWebhook(
     @Req() req: RawBodyRequest<Request>,

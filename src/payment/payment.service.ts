@@ -81,7 +81,7 @@ export class PaymentService {
               },
               $set: {
                 currentOrder: [],
-                currentState: 'MAIN_MENU',
+                currentState: 'PAYMENT_SUCCESSFUL',
               },
             },
           );

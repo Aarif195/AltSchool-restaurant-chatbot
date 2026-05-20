@@ -16,11 +16,12 @@ export class ChatService {
     ];
 
     private readonly initialOptions = `
-Select 1 to Place an order
-Select 99 to checkout order
-Select 98 to see order history
-Select 97 to see current order
-Select 0 to cancel order`;
+    Please select an option to continue:
+    Select 1 to Place an order
+    Select 99 to checkout order
+    Select 98 to see order history
+    Select 97 to see current order
+    Select 0 to cancel order`;
 
     constructor(
         @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
@@ -39,6 +40,13 @@ Select 0 to cancel order`;
                 currentOrder: [],
                 orderHistory: [],
             });
+        }
+
+        // // Detect and handle newly finalized payment sessions safely
+        if (session.currentState === 'PAYMENT_SUCCESSFUL') {
+            session.currentState = 'MAIN_MENU';
+            await session.save();
+            return { response: `Thank you! Your payment was successful and your order has been placed.\n\n${this.initialOptions}` };
         }
 
         // Handle initial loads or empty payloads safely
@@ -60,6 +68,13 @@ Select 0 to cancel order`;
             await session.save();
             return { response: `Welcome to our Restaurant!\n\n${this.initialOptions}` };
         }
+
+
+        // if (!cleanMessage) {
+        //     session.currentState = 'MAIN_MENU';
+        //     await session.save();
+        //     return { response: `Welcome to our Restaurant!\n\n${this.initialOptions}` };
+        // }
 
         // Explicit command matching takes absolute priority over current states
         switch (cleanMessage) {

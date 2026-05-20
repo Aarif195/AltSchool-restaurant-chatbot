@@ -46,7 +46,7 @@ Select 0 to cancel order`;
         switch (cleanMessage) {
             case '1':
                 session.currentState = 'VIEWING_MENU';
-                await session.save(); // Explicitly save state change
+                await session.save();
                 return { response: this.getMenuText() };
 
             case '97':
@@ -58,6 +58,7 @@ Select 0 to cancel order`;
                 }
                 session.currentOrder = [];
                 session.currentState = 'MAIN_MENU';
+                session.email = null;
                 await session.save();
                 return { response: `Your current order has been cancelled.\n${this.initialOptions}` };
 
@@ -69,32 +70,45 @@ Select 0 to cancel order`;
                     return { response: `No order to place. Please select an option to start:${this.initialOptions}\nSelect 1 to place a new order.` };
                 }
 
-                try {
-                    const totalAmount = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
-                    const guestEmail = `guest-${deviceId}@gmail.com`;
-
-                    const paymentData = await this.paymentService.initializeTransaction(
-                        totalAmount,
-                        guestEmail,
-                        { deviceId },
-                    );
-
-                    session.currentState = 'AWAITING_PAYMENT';
-                    await session.save();
-
-                    return {
-                        response: `Your total is ₦${totalAmount}. Please complete your payment using this secure link:\n\n${paymentData.authorization_url}\n\nOnce payment is complete, you will be automatically updated here. Select 0 to cancel.`
-                    };
-                } catch (error) {
-                    return { response: `Failed to initialize payment. Please try checkout again later.` };
-                }
+                session.currentState = 'AWAITING_EMAIL';
+                await session.save();
+                return { response: `Please type your email address to receive your payment receipt directly from Paystack:` };
 
             default:
+                // Handle email address input collection
+                if (session.currentState === 'AWAITING_EMAIL') {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(cleanMessage)) {
+                        return { response: `❌ Invalid email address format. Please type a valid email address:` };
+                    }
+
+                    session.email = cleanMessage;
+                    await session.save();
+
+                    try {
+                        const totalAmount = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
+
+                        const paymentData = await this.paymentService.initializeTransaction(
+                            totalAmount,
+                            session.email,
+                            { deviceId },
+                        );
+
+                        session.currentState = 'AWAITING_PAYMENT';
+                        await session.save();
+
+                        return {
+                            response: `Your total is ₦${totalAmount}. Please complete your payment using this secure link:\n\n${paymentData.authorization_url}\n\nOnce payment is complete, you will be automatically updated here. Select 0 to cancel.`
+                        };
+                    } catch (error) {
+                        return { response: `Failed to initialize payment. Please type your email to try again.` };
+                    }
+                }
+
                 // Handle menu item selection if user is in VIEWING_MENU state
                 if (session.currentState === 'VIEWING_MENU') {
                     const selectedItem = this.menu.find((item) => item.id === cleanMessage);
                     if (selectedItem) {
-
                         const updatedOrder = [...session.currentOrder, selectedItem];
                         session.currentOrder = updatedOrder;
 

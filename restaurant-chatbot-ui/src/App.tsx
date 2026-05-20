@@ -64,14 +64,34 @@ export default function App() {
   };
 
   if (window.location.pathname === '/payment/success') {
-  return <PaymentSuccess />;
-}
+    return <PaymentSuccess />;
+  }
+
+  const renderMessageText = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.split(urlRegex).map((part, i) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white underline font-bold break-all hover:text-indigo-200 block mt-2 bg-indigo-700/50 p-3 rounded-xl text-center border border-indigo-400/30"
+          >
+            Click Here to Pay Safely
+          </a>
+        );
+      }
+      return part;
+    });
+  };
 
   return (
     <div className="flex h-screen w-screen bg-brand-dark justify-center items-center p-0 sm:p-4">
       {/* Chat Container Window */}
       <div className="flex flex-col h-full w-full max-w-md bg-brand-surface sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
-        
+
         {/* Top Header Section */}
         <header className="bg-brand-primary p-4 text-white flex items-center justify-between shadow-md">
           <div className="flex items-center space-x-3">
@@ -91,17 +111,16 @@ export default function App() {
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed shadow-sm ${
-                  msg.sender === 'user'
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap leading-relaxed shadow-sm ${msg.sender === 'user'
                     ? 'bg-brand-primary text-white rounded-br-none'
                     : 'bg-white text-slate-800 rounded-bl-none border border-slate-100'
-                }`}
+                  }`}
               >
-                {msg.text}
+                {msg.sender === 'user' ? msg.text : renderMessageText(msg.text)}
               </div>
             </div>
           ))}
-          
+
           {loading && (
             <div className="flex justify-start">
               <div className="bg-white text-slate-400 border border-slate-100 rounded-2xl rounded-bl-none px-4 py-3 text-xs flex items-center space-x-1 shadow-sm">
@@ -129,7 +148,7 @@ export default function App() {
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="bg-brand-primary text-white font-semibold rounded-xl px-5 py-3 text-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-indigo-100"
+              className="bg-brand-primary text-white font-semibold rounded-xl px-5 py-3 text-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-indigo-100 cursor-pointer"
             >
               Send
             </button>

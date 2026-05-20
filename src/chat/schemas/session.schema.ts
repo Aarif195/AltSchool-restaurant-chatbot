@@ -8,6 +8,9 @@ export class Session {
   @Prop({ required: true, unique: true })
   deviceId: string;
 
+  @Prop({ type: String, default: null })
+  email: string | null;
+
   @Prop({ default: 'MAIN_MENU' })
   currentState: string;
 

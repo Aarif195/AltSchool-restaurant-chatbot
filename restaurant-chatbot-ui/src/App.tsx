@@ -36,7 +36,8 @@ useEffect(() => {
       setLoading(true);
       try {
         // If returning from a transaction, send a forced cancel action payload "0" to reset the state pipeline
-        const initialPayload = '';
+        // const initialPayload = '';
+        const initialPayload = isPaymentRedirect ? 'PAYMENT_REDIRECT_SUCCESS' : '';
         const data = await sendMessage(initialPayload);
         setMessages([{ sender: 'bot', text: data.response }]);
       } catch (error) {

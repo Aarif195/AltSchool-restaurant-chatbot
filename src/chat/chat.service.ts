@@ -42,39 +42,33 @@ export class ChatService {
             });
         }
 
-        // // Detect and handle newly finalized payment sessions safely
-        if (session.currentState === 'PAYMENT_SUCCESSFUL') {
+       
+        if (cleanMessage === 'PAYMENT_REDIRECT_SUCCESS' || session.currentState === 'PAYMENT_SUCCESSFUL') {
+            
+            if (session.currentOrder.length > 0) {
+                const total = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
+                session.orderHistory.push({
+                    items: session.currentOrder,
+                    total,
+                    status: 'paid',
+                    paidAt: new Date(),
+                });
+            }
+
+            session.currentOrder = [];
             session.currentState = 'MAIN_MENU';
+            session.email = null;
             await session.save();
             return { response: `Thank you! Your payment was successful and your order has been placed.\n\n${this.initialOptions}` };
         }
 
-        // Handle initial loads or empty payloads safely
+    
+
         if (!cleanMessage) {
-            // If the user is currently processing a payment or email, do not alter their DB state
-            if (session.currentState === 'AWAITING_PAYMENT') {
-                const totalAmount = session.currentOrder.reduce((sum, item) => sum + item.price, 0);
-                return {
-                    response: `You have a pending transaction of ₦${totalAmount} waiting for confirmation. Please complete payment via the secure link provided above, or type 0 to cancel and start over.`
-                };
-            }
-
-            if (session.currentState === 'AWAITING_EMAIL') {
-                return { response: `Please type your email address to receive your payment receipt directly from Paystack:` };
-            }
-
-            // Default fallback for fresh or idle sessions
             session.currentState = 'MAIN_MENU';
             await session.save();
             return { response: `Welcome to our Restaurant!\n\n${this.initialOptions}` };
         }
-
-
-        // if (!cleanMessage) {
-        //     session.currentState = 'MAIN_MENU';
-        //     await session.save();
-        //     return { response: `Welcome to our Restaurant!\n\n${this.initialOptions}` };
-        // }
 
         // Explicit command matching takes absolute priority over current states
         switch (cleanMessage) {
